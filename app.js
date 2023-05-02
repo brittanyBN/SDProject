@@ -5,22 +5,14 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fileUpload = require('express-fileupload');
 const { auth } = require('express-openid-connect');
-dotenv = require('dotenv').config();
+require('dotenv').config();
 
 const indexRouter = require('./routes/index');
 const picturesRouter = require('./routes/pictures');
 
-const config = {
-  authRequired: false,
-  auth0Logout: true
-};
+const app = express();
 
 const port = process.env.PORT || 3000;
-if (!config.baseURL && !process.env.BASE_URL && process.env.PORT && process.env.NODE_ENV !== 'production') {
-  config.baseURL = `http://localhost:${port}`;
-}
-
-const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -37,7 +29,14 @@ app.use(fileUpload());
 app.use('/', indexRouter);
 app.use('/pictures', picturesRouter);
 
-app.use(auth(config));
+app.use(auth({
+    authRequired: false,
+    auth0Logout: true,
+    issuerBaseURL: process.env.ISSUER_BASE_URL,
+    baseURL: process.env.BASE_URL,
+    clientID: process.env.CLIENT_ID,
+    secret: process.env.SECRET,
+}));
 
 // Middleware to make the `user` object available for all views
 app.use(function (req, res, next) {
