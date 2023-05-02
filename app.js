@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const fileUpload = require('express-fileupload');
+dotenv = require('dotenv').config();
 
 
 const indexRouter = require('./routes/index');
