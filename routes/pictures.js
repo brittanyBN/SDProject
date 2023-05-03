@@ -29,17 +29,19 @@ router.get('/', requiresAuth(), async function(req, res, next) {
 });
 
 /* GET picture. */
-router.get('/:picture', async function (req, res, next) {
-  let params = {
-    Bucket: process.env.CYCLIC_BUCKET_NAME,
-    Delimiter: '/',
-    Prefix: 'public/'
-  };
-  let allObjects = await s3.listObjects(params).promise();
-  let keys = allObjects?.Contents.map(x => x.Key)
-  let picture = req.params.picture;
-  picture += '.JPG';
-  res.sendFile(path.join(__dirname, '../pictures/', picture));
+router.get('/:picture', requiresAuth(), async function (req, res, next) {
+  try {
+    const params = {
+      Bucket: process.env.CYCLIC_BUCKET_NAME,
+      Key: `${req.oidc.user.email}/${req.params.picture}.JPG`,
+    };
+    const file = await s3.getObject(params).promise();
+    res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+    res.end(file.Body, 'binary');
+  } catch (err) {
+    console.error(err);
+    res.status(404).send('Picture not found');
+  }
 });
 
 /* POST picture. */
